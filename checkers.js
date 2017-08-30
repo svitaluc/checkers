@@ -1,4 +1,6 @@
 // checkers.js
+const readline = require('readline');
+
 
 /** The state of the game */
 var state = {
@@ -10,7 +12,7 @@ var state = {
     ['w',null,'w',null,'w',null,'w',null,'w',null,'w'],
     [null,'w',null,'w',null,'w',null,'w',null,'w'],
     [null, null, null, null, null, null, null, null,null,null],
-    [null, null, null, null, null, null, null, null,null,null],
+    [null, 'w', null, null, null, null, null, null,null,null],
     ['b',null,'b',null,'b',null,'b',null,'b',null],
     [null,'b',null,'b',null,'b',null,'b',null,'b'],
     ['b',null,'b',null,'b',null,'b',null,'b',null],
@@ -236,7 +238,11 @@ function nextTurn() {
   }
 }
 
+/**
+ * Printing function implemented by me on 8/28
+ */
 function printBoard() {
+  console.log("     a   b   c   d   e   f   g   h   i   j");
   var boardLine = "|";
   for (y = 0; y < 10; y++){
     for (x = 0; x < 10; x++){
@@ -248,9 +254,62 @@ function printBoard() {
         boardLine += "   ";
       boardLine += "|";
     }
-    console.log(boardLine);
+    console.log(y, boardLine);
     boardLine = "|";
   }
 }
 
-printBoard();
+/**
+ * Printing function implemented in class
+ */
+function printBoard2(){
+  console.log("   a b c d e f g h i j")
+  state.board.forEach(function(row, index){
+    var ascii = row.map(function(square){
+      if(!square) return '_';
+      else return square;
+    }).join('|');
+    console.log(index, ascii);
+  });
+}
+
+function main(){
+  //initialize readline
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  //print the board
+  printBoard();
+  //offer instructions
+  console.log(state.turn + "'s turn");
+  rl.question("Pick a piece to move, (letter, number)", function(answer) {
+    //Figure out whate piece the user asked to move
+    var match = /([a-j]),?\s?([0-9])/.exec(answer);
+    if(match) {
+      var x = match[1].charCodeAt(0) - 97;
+      var y = parseInt(match[2]);
+      var piece = state.board[y][x];
+      var moves = getLegalMoves(piece, x, y);
+      moves.forEach(function(move){
+        if(move.type === "slide") {
+          console.log("You can slide to " + String.fromCharCode(97 + move.x) + ", " + move.y);
+        } else {
+          var logString = "You can jump to";
+          move.landings.forEach(function(landing) {
+            logString += " " + String.fromCharCode(97 + landing.x) + "," + landing.y;
+          });
+          logString += " capturing opponent's pieces on";
+          move.captures.forEach(function(capture){
+            logString += " " + String.fromCharCode(97 + capture.x) + "," + capture.y;
+          });
+          console.log(logString);
+        }
+      })
+    }
+  });
+};
+
+main();
+
+//printBoard();
